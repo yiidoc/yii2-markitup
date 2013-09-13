@@ -15,6 +15,7 @@ use yii\widgets\InputWidget;
  */
 class MarkItUp extends InputWidget
 {
+
     public function init()
     {
         
