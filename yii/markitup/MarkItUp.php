@@ -6,7 +6,6 @@
  */
 
 namespace yii\markitup;
-
 use Yii;
 use yii\widgets\InputWidget;
 use yii\helpers\Html;
@@ -17,11 +16,9 @@ use yii\helpers\Html;
  */
 class MarkItUp extends InputWidget
 {
-
     const PACKAGE = 'yii\markitup\MarkItUpAsset';
-
-    public $options = array('class' => 'form-control');
-    public $setting = 'markdown';
+    public $options = array('class' => 'form-control', 'style' => 'overflow:auto;resize:none');
+    public $setting = 'default';
     public $skin = 'simple';
     public $addons = array();
     private $_package = array(
@@ -50,6 +47,7 @@ class MarkItUp extends InputWidget
         } else {
             echo Html::textarea($this->name, $this->value, $this->options);
         }
+        $this->renderModalPreview();
         $this->registerBundle();
         $this->registerScript();
     }
@@ -91,4 +89,18 @@ class MarkItUp extends InputWidget
         $this->view->registerJs("jQuery('#{$this->options['id']}').markItUp(mySettings);");
     }
 
+    public function renderModalPreview()
+    {
+        echo Html::beginTag('div', array('id' => 'miuPreview', 'class' => 'modal'));
+        echo Html::beginTag('div', array('class' => 'modal-dialog'));
+        echo Html::beginTag('div', array('class' => 'modal-content'));
+        echo Html::beginTag('div', array('class' => 'modal-header'));
+        echo Html::button('&times;', array("class" => "close", "data-dismiss" => "modal", "aria-hidden" => "true"));
+        echo Html::tag('h4', 'Preview', array('class' => 'modal-title'));
+        echo Html::endTag('div');
+        echo Html::tag('div', '', array('class' => 'modal-body'));
+        echo Html::endTag('div');
+        echo Html::endTag('div');
+        echo Html::endTag('div');
+    }
 }
