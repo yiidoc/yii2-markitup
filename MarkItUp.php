@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @link http://www.yiiframework.com/
  * @copyright Copyright (c) 2008 Yii Software LLC
@@ -6,27 +7,23 @@
  */
 
 namespace yii\markitup;
+
 use Yii;
 use yii\widgets\InputWidget;
 use yii\helpers\Html;
+use yii\web\AssetBundle;
 
 /**
  * @author Nghia Nguyen <yiidevelop@hotmail.com>
  * @since 2.0
  */
-class MarkItUp extends InputWidget
-{
-    const PACKAGE = 'yii\markitup\MarkItUpAsset';
+class MarkItUp extends InputWidget {
+
     public $options = array('class' => 'form-control', 'style' => 'overflow:auto;resize:none');
-    public $setting = 'default';
-    public $skin = 'simple';
+    public $setName = 'default';
+    public $skinName = 'simple';
     public $addons = array();
-    private $_package = array(
-        'depends' => array('\yii\web\JqueryAsset'),
-        'js' => array(
-            'jquery.markitup.js',
-        )
-    );
+    private $_assetBundle;
 
     public function init()
     {
@@ -35,9 +32,11 @@ class MarkItUp extends InputWidget
         } else {
             $this->options['id'] = $this->getId();
         }
+        $this->registerAssetBundle();
         $this->setSetting();
         $this->setSkin();
         $this->setAddOns();
+        $this->registerScript();
     }
 
     public function run()
@@ -48,29 +47,25 @@ class MarkItUp extends InputWidget
             echo Html::textarea($this->name, $this->value, $this->options);
         }
         $this->renderModalPreview();
-        $this->registerBundle();
-        $this->registerScript();
-    }
-
-    public function registerBundle()
-    {
-        $this->_package['sourcePath'] = Yii::getAlias('@yii/markitup/assets');
-        Yii::$app->assetManager->bundles[self::PACKAGE] = $this->_package;
-        $this->view->registerAssetBundle(self::PACKAGE);
     }
 
     public function setSetting()
     {
-        if (!empty($this->setting)) {
-            $this->_package['js'][] = "sets/{$this->setting}/set.js";
-            $this->_package['css'][] = "sets/{$this->setting}/style.css";
+        $setJsAsset = "sets/{$this->setName}/set.js";
+        if (file_exists(Yii::getAlias($this->getAssetBundle()->sourcePath . '/' . $setJsAsset))) {
+            $this->getAssetBundle()->js[] = $setJsAsset;
+        }
+        $setCssAsset = "sets/{$this->setName}/style.css";
+        if (file_exists(Yii::getAlias($this->getAssetBundle()->sourcePath . '/' . $setCssAsset))) {
+            $this->getAssetBundle()->css[] = $setCssAsset;
         }
     }
 
     public function setSkin()
     {
-        if (!empty($this->skin)) {
-            $this->_package['css'][] = "skins/{$this->skin}/style.css";
+        $skinAsset = "skins/{$this->skin}/style.css";
+        if (file_exists(Yii::getAlias($this->getAssetBundle()->sourcePath . '/' . $skinAsset))) {
+            $this->getAssetBundle()->css[] = $skinAsset;
         }
     }
 
@@ -78,8 +73,14 @@ class MarkItUp extends InputWidget
     {
         if (!empty($this->addons)) {
             foreach ($this->addons as $addon) {
-                $this->_package['js'][] = "addons/{$addon}/set.js";
-                $this->_package['css'][] = "addons/{$addon}/style.css";
+                $addonJsAsset = "addons/{$addon}/set.js";
+                if (file_exists(Yii::getAlias($this->getAssetBundle()->sourcePath . '/' . $addonJsAsset))) {
+                    $this->getAssetBundle()->js[] = $addonJsAsset;
+                }
+                $addonCssAsset = "addons/{$addon}/style.css";
+                if (file_exists(Yii::getAlias($this->getAssetBundle()->sourcePath . '/' . $addonCssAsset))) {
+                    $this->getAssetBundle()->css[] = $addonCssAsset;
+                }
             }
         }
     }
@@ -87,6 +88,19 @@ class MarkItUp extends InputWidget
     public function registerScript()
     {
         $this->view->registerJs("jQuery('#{$this->options['id']}').markItUp(mySettings);");
+    }
+
+    public function registerAssetBundle()
+    {
+        $this->_assetBundle = MarkItUpAsset::register($this->getView());
+    }
+
+    public function getAssetBundle()
+    {
+        if (!($this->_assetBundle instanceof AssetBundle)) {
+            $this->registerAssetBundle();
+        }
+        return $this->_assetBundle;
     }
 
     public function renderModalPreview()
@@ -103,4 +117,5 @@ class MarkItUp extends InputWidget
         echo Html::endTag('div');
         echo Html::endTag('div');
     }
+
 }
